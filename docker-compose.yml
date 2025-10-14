@@ -1,6 +1,9 @@
 services:
   yt-dlp-api:
+    container_name: yt-dlp-api
     build: .
     ports:
       - "5012:5012"
     restart: unless-stopped
+    environment:
+      - YOUTUBE_COOKIE=""

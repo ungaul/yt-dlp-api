@@ -7,6 +7,8 @@ from yt_dlp.utils import DownloadError
 import re
 
 app = Flask(__name__)
+cookie_content = os.getenv("YOUTUBE_COOKIE")
+cookies_file = None
 
 @app.route('/info', methods=['POST'])
 def info():
@@ -54,8 +56,8 @@ def download():
     url = request.args.get('url')
     if url:
         url = re.sub(r'([&?])(list|start_radio)=[^&]*', '', url)
-    format_id = request.args.get('format', 'mp4')  # default to mp4
-    cookies_raw = request.args.get('cookies')  # optional cookies string
+    format_id = request.args.get('format', 'mp4')
+    cookies_raw = request.args.get('cookies')
 
     if not url:
         return jsonify({'error': 'URL query parameter is required'}), 400
@@ -66,6 +68,10 @@ def download():
             cookies_file = os.path.join(tmpdir, "cookies.txt")
             with open(cookies_file, "w") as f:
                 f.write(cookies_raw)
+        elif cookie_content:
+            cookies_file = os.path.join(tmpdir, "cookies.txt")
+            with open(cookies_file, "w") as f:
+                f.write(cookie_content)
 
         if format_id == 'mp3':
             ydl_opts = {
