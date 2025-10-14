@@ -23,7 +23,7 @@ docker compose up -d
 ## Usage
 |Purpose|Endpoint|Parameters|Example
 |-|-|-|-
-|Get the audio/video file|`/download`|`format` (optional, `mp3`/`mp4`); `cookies` (optional, see below)|http://localhost:5012/download?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ&format=mp3
+|Get the audio/video file|`/download`|`format` (optional, `mp3`/`mp4`); `cookies` (optional, see below); `quality` (optional, `144p`,`2160p`,etc)|http://localhost:5012/download?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ&format=mp4&quality=360p
 |Get the formats available for this audio/video|`/formats`|-|http://localhost:5012/formats?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ
 |Get metadata|`/info`|-|http://localhost:5012/info?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ
 

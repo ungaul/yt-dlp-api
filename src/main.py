@@ -74,15 +74,24 @@ def formats():
 def download():
     if request.method == 'POST':
         url = request.json.get('url')
-        format_id = request.json.get('format', 'mp4')
+        format_type = request.json.get('format', 'mp4')
+        quality = request.json.get('quality')
         cookies_raw = request.json.get('cookies')
     else:
         url = request.args.get('url')
-        format_id = request.args.get('format', 'mp4')
+        format_type = request.args.get('format', 'mp4')
+        quality = request.args.get('quality')
         cookies_raw = request.args.get('cookies')
 
     if not url:
         return jsonify({'error': 'URL query parameter is required'}), 400
+
+    if quality:
+        if not re.fullmatch(r'\d+p', quality):
+            return jsonify({'error': 'Unavailable quality.'}), 400
+        height = int(quality[:-1])
+    else:
+        height = None
 
     with tempfile.TemporaryDirectory() as tmpdir:
         cookies_file = None
@@ -95,7 +104,7 @@ def download():
             if os.path.isfile(fixed_cookies_path):
                 cookies_file = fixed_cookies_path
 
-        if format_id == 'mp3':
+        if format_type == 'mp3':
             ydl_opts = {
                 'format': 'bestaudio',
                 'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
@@ -109,8 +118,13 @@ def download():
                 }],
             }
         else:
+            if height:
+               format_str = f'(bestvideo[ext=mp4][height={height}]+bestaudio[ext=m4a]/best[ext=mp4][height={height}])'
+            else:
+                format_str = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]'
+
             ydl_opts = {
-                'format': format_id,
+                'format': format_str,
                 'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
                 'quiet': True,
             }
