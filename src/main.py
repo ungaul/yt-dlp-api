@@ -8,6 +8,21 @@ import re
 
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def index():
+    endpoint_details = {}
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint == 'static':
+            continue
+        methods = ','.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
+        endpoint_details[str(rule.rule)] = methods
+
+    return jsonify({
+        'message': 'yt-dlp-api available endpoints',
+        'source': 'https://github.com/ungaul/yt-dlp-api',
+        'endpoints': endpoint_details
+    })
+
 @app.route('/info', methods=['GET', 'POST'])
 def info():
     if request.method == 'POST':
