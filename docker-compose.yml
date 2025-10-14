@@ -1,0 +1,6 @@
+services:
+  yt-dlp-api:
+    build: .
+    ports:
+      - "5012:5012"
+    restart: unless-stopped

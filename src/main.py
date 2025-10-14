@@ -1,0 +1,113 @@
+from flask import Flask, request, jsonify, send_file
+import yt_dlp
+import os
+import tempfile
+import glob
+from yt_dlp.utils import DownloadError
+import re
+
+app = Flask(__name__)
+
+@app.route('/info', methods=['POST'])
+def info():
+    url = request.json.get('url')
+    if not url:
+        return jsonify({'error': 'URL is required'}), 400
+    try:
+        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+            info = ydl.extract_info(url, download=False)
+        return jsonify({
+            'id': info.get('id'),
+            'title': info.get('title'),
+            'uploader': info.get('uploader'),
+            'duration': info.get('duration'),
+            'webpage_url': info.get('webpage_url'),
+            'description': info.get('description'),
+            'thumbnail': info.get('thumbnail'),
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/formats', methods=['POST'])
+def formats():
+    url = request.json.get('url')
+    if not url:
+        return jsonify({'error': 'URL is required'}), 400
+    try:
+        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+            info = ydl.extract_info(url, download=False)
+        formats = [{
+            'format_id': f.get('format_id'),
+            'format_note': f.get('format_note'),
+            'ext': f.get('ext'),
+            'filesize': f.get('filesize'),
+            'fps': f.get('fps'),
+            'vcodec': f.get('vcodec'),
+            'acodec': f.get('acodec')
+        } for f in info.get('formats', [])]
+        return jsonify({'formats': formats})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/download', methods=['GET'])
+def download():
+    url = request.args.get('url')
+    if url:
+        url = re.sub(r'([&?])(list|start_radio)=[^&]*', '', url)
+    format_id = request.args.get('format', 'mp4')  # default to mp4
+    cookies_raw = request.args.get('cookies')  # optional cookies string
+
+    if not url:
+        return jsonify({'error': 'URL query parameter is required'}), 400
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        cookies_file = None
+        if cookies_raw:
+            cookies_file = os.path.join(tmpdir, "cookies.txt")
+            with open(cookies_file, "w") as f:
+                f.write(cookies_raw)
+
+        if format_id == 'mp3':
+            ydl_opts = {
+                'format': 'bestaudio',
+                'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
+                'quiet': True,
+                'noprogress': True,
+                'nooverwrites': True,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }],
+            }
+        else:
+            ydl_opts = {
+                'format': format_id,
+                'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
+                'quiet': True,
+            }
+
+        if cookies_file:
+            ydl_opts['cookiefile'] = cookies_file
+
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.extract_info(url, download=True)
+
+            files = glob.glob(os.path.join(tmpdir, '*'))
+            if not files:
+                return jsonify({'error': 'Downloaded file not found'}), 500
+            filepath = files[0]
+
+            return send_file(
+                filepath,
+                as_attachment=True,
+                download_name=os.path.basename(filepath)
+            )
+        except DownloadError as e:
+            return jsonify({'error': 'Download error: ' + str(e)}), 500
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5012)
