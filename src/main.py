@@ -7,8 +7,6 @@ from yt_dlp.utils import DownloadError
 import re
 
 app = Flask(__name__)
-cookie_content = os.getenv("YOUTUBE_COOKIE")
-cookies_file = None
 
 @app.route('/info', methods=['POST'])
 def info():
@@ -68,10 +66,10 @@ def download():
             cookies_file = os.path.join(tmpdir, "cookies.txt")
             with open(cookies_file, "w") as f:
                 f.write(cookies_raw)
-        elif cookie_content:
-            cookies_file = os.path.join(tmpdir, "cookies.txt")
-            with open(cookies_file, "w") as f:
-                f.write(cookie_content)
+        else:
+            fixed_cookies_path = "/app/yt_cookies.txt"
+            if os.path.isfile(fixed_cookies_path):
+                cookies_file = fixed_cookies_path
 
         if format_id == 'mp3':
             ydl_opts = {

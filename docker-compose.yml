@@ -5,5 +5,5 @@ services:
     ports:
       - "5012:5012"
     restart: unless-stopped
-    environment:
-      - YOUTUBE_COOKIE=""
+    volumes:
+      - ./yt_cookies.txt:/app/yt_cookies.txt
