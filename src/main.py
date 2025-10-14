@@ -8,9 +8,12 @@ import re
 
 app = Flask(__name__)
 
-@app.route('/info', methods=['POST'])
+@app.route('/info', methods=['GET', 'POST'])
 def info():
-    url = request.json.get('url')
+    if request.method == 'POST':
+        url = request.json.get('url')
+    else:
+        url = request.args.get('url')
     if not url:
         return jsonify({'error': 'URL is required'}), 400
     try:
@@ -28,9 +31,12 @@ def info():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/formats', methods=['POST'])
+@app.route('/formats', methods=['GET', 'POST'])
 def formats():
-    url = request.json.get('url')
+    if request.method == 'POST':
+        url = request.json.get('url')
+    else:
+        url = request.args.get('url')
     if not url:
         return jsonify({'error': 'URL is required'}), 400
     try:
@@ -49,13 +55,16 @@ def formats():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/download', methods=['GET'])
+@app.route('/download', methods=['GET', 'POST'])
 def download():
-    url = request.args.get('url')
-    if url:
-        url = re.sub(r'([&?])(list|start_radio)=[^&]*', '', url)
-    format_id = request.args.get('format', 'mp4')
-    cookies_raw = request.args.get('cookies')
+    if request.method == 'POST':
+        url = request.json.get('url')
+        format_id = request.json.get('format', 'mp4')
+        cookies_raw = request.json.get('cookies')
+    else:
+        url = request.args.get('url')
+        format_id = request.args.get('format', 'mp4')
+        cookies_raw = request.args.get('cookies')
 
     if not url:
         return jsonify({'error': 'URL query parameter is required'}), 400
