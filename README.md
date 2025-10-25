@@ -27,6 +27,7 @@ docker compose up -d
 |Get the formats available for this audio/video|`/formats`|-|http://localhost:5012/formats?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ
 |Get metadata|`/info`|-|http://localhost:5012/info?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
+> Note: sometimes YouTube tries to find ways to block yt-dlp so you may encounter 403: Forbidden for no reason. In that case, simply run `docker exec -it yt-dlp-api pip install -U yt-dlp` to update yt-dlp (as soon as a patch is available)
 
 ### Cookie file
 You should use a cookie file to avoid being flagged as bot:
