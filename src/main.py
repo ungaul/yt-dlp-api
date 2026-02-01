@@ -132,8 +132,8 @@ def download():
         if cookies_file:
             ydl_opts['cookiefile'] = cookies_file
             
-        ydl_opts['jsruntimes'] = 'deno'
-        ydl_opts['remote_components'] = 'ejs:github'
+        ydl_opts['jsruntimes'] = ['deno']
+        ydl_opts['remote_components'] = ['ejs:github']
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
