@@ -5,8 +5,10 @@ import tempfile
 import glob
 from yt_dlp.utils import DownloadError
 import re
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, origins="*")
 
 @app.route('/', methods=['GET'])
 def index():

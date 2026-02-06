@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>yt-dlp Web</title>
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js" type="module"></script>
+  <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js" nomodule></script>
+</head>
+<body>
+
+  <!-- Endpoint Config Modal -->
+  <div id="endpoint-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-icon">
+        <ion-icon name="server-outline"></ion-icon>
+      </div>
+      <h2>Connect to your API</h2>
+      <p>Enter the base URL of your yt-dlp-api instance</p>
+      <div class="modal-input-group">
+        <input type="text" id="endpoint-input" placeholder="http://localhost:5012" spellcheck="false" autocomplete="off">
+        <span class="input-hint">No trailing slash</span>
+      </div>
+      <button id="endpoint-save" class="btn btn-primary btn-full">
+        <ion-icon name="link-outline"></ion-icon>
+        <span>Connect</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <ion-icon name="download-outline"></ion-icon>
+          <span>yt-dlp<span class="accent">web</span></span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="btn-settings" class="btn btn-icon" title="API Settings">
+          <ion-icon name="settings-outline"></ion-icon>
+        </button>
+      </div>
+    </header>
+
+    <!-- URL Input -->
+    <section class="url-section">
+      <div class="url-bar">
+        <ion-icon name="link-outline" class="url-icon"></ion-icon>
+        <input type="text" id="url-input" placeholder="Paste a video or audio URL…" spellcheck="false" autocomplete="off">
+        <div class="url-actions">
+          <button id="btn-paste" class="btn btn-ghost" title="Paste from clipboard">
+            <ion-icon name="clipboard-outline"></ion-icon>
+          </button>
+          <button id="btn-clear" class="btn btn-ghost hidden" title="Clear">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+      <div class="action-row">
+        <button id="btn-info" class="btn btn-secondary">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>Info</span>
+        </button>
+        <button id="btn-formats" class="btn btn-secondary">
+          <ion-icon name="list-outline"></ion-icon>
+          <span>Formats</span>
+        </button>
+        <button id="btn-download" class="btn btn-primary">
+          <ion-icon name="download-outline"></ion-icon>
+          <span>Download</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Download Options Panel -->
+    <section id="download-options" class="options-panel hidden">
+      <h3><ion-icon name="options-outline"></ion-icon> Download Options</h3>
+      <div class="options-grid">
+        <div class="option-group">
+          <label for="opt-format">Format</label>
+          <div class="select-wrap">
+            <select id="opt-format">
+              <option value="">Auto (best)</option>
+              <option value="mp4">MP4 (video)</option>
+              <option value="mp3">MP3 (audio)</option>
+            </select>
+            <ion-icon name="chevron-down-outline"></ion-icon>
+          </div>
+        </div>
+        <div class="option-group">
+          <label for="opt-quality">Quality</label>
+          <div class="select-wrap">
+            <select id="opt-quality">
+              <option value="">Best available</option>
+              <option value="2160p">2160p (4K)</option>
+              <option value="1440p">1440p (QHD)</option>
+              <option value="1080p">1080p (FHD)</option>
+              <option value="720p">720p (HD)</option>
+              <option value="480p">480p</option>
+              <option value="360p">360p</option>
+              <option value="240p">240p</option>
+              <option value="144p">144p</option>
+            </select>
+            <ion-icon name="chevron-down-outline"></ion-icon>
+          </div>
+        </div>
+        <div class="option-group option-cookies">
+          <label>Cookies</label>
+          <div class="toggle-wrap">
+            <input type="checkbox" id="opt-cookies-toggle">
+            <label for="opt-cookies-toggle" class="toggle-label">Pass cookie file</label>
+          </div>
+        </div>
+      </div>
+      <div id="cookies-section" class="cookies-section hidden">
+        <div class="cookies-header">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <div>
+            <strong>Netscape Cookie File</strong>
+            <span>Paste the raw content of your cookie file exported via <a href="https://addons.mozilla.org/en-US/firefox/addon/cookie-editor/" target="_blank" rel="noopener">Cookie-Editor</a> in Netscape format.</span>
+          </div>
+        </div>
+        <textarea id="opt-cookies-content" placeholder="# Netscape HTTP Cookie File&#10;.youtube.com&#9;TRUE&#9;/&#9;TRUE&#9;0&#9;COOKIE_NAME&#9;COOKIE_VALUE" spellcheck="false"></textarea>
+        <div class="cookies-validation" id="cookies-validation"></div>
+      </div>
+      <button id="btn-start-download" class="btn btn-primary btn-full">
+        <ion-icon name="download-outline"></ion-icon>
+        <span>Start Download</span>
+      </button>
+    </section>
+
+    <!-- Results Area -->
+    <section id="results" class="results hidden">
+      <!-- Loading State -->
+      <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <span>Fetching data…</span>
+      </div>
+
+      <!-- Error State -->
+      <div id="error" class="error-box hidden">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span id="error-msg"></span>
+      </div>
+
+      <!-- Download Progress -->
+      <div id="download-progress" class="download-card hidden">
+        <div class="download-card-header">
+          <div class="download-icon-wrap">
+            <ion-icon name="cloud-download-outline" id="dl-icon"></ion-icon>
+            <div class="dl-spinner-ring" id="dl-spinner"></div>
+          </div>
+          <div class="download-meta">
+            <span class="dl-title" id="dl-title">Preparing download…</span>
+            <span class="dl-sub" id="dl-sub">This may take a moment while the server processes the file</span>
+          </div>
+          <button id="dl-cancel" class="btn btn-ghost" title="Cancel">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <div class="dl-bar-track">
+          <div class="dl-bar-fill" id="dl-bar-fill"></div>
+        </div>
+        <div class="dl-stats">
+          <span id="dl-percent">Waiting for server…</span>
+          <span id="dl-size"></span>
+        </div>
+      </div>
+
+      <!-- Info Result -->
+      <div id="info-result" class="card hidden">
+        <div class="card-header">
+          <h3><ion-icon name="information-circle-outline"></ion-icon> Media Info</h3>
+        </div>
+        <div class="info-layout">
+          <div id="info-thumb" class="info-thumb"></div>
+          <div class="info-details">
+            <table id="info-table" class="info-table"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formats Result -->
+      <div id="formats-result" class="card hidden">
+        <div class="card-header">
+          <h3><ion-icon name="list-outline"></ion-icon> Available Formats</h3>
+          <div class="format-filters">
+            <button class="btn btn-chip active" data-filter="all">All</button>
+            <button class="btn btn-chip" data-filter="video">Video</button>
+            <button class="btn btn-chip" data-filter="audio">Audio</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="formats-table" class="formats-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Ext</th>
+                <th>Resolution</th>
+                <th>FPS</th>
+                <th>Codec</th>
+                <th>Size</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Status Bar -->
+    <footer class="status-bar">
+      <div class="status-left">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Disconnected</span>
+      </div>
+      <div class="status-right">
+        <span id="endpoint-display"></span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
