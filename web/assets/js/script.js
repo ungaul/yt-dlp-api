@@ -203,10 +203,25 @@ $(function () {
   });
 
   // ===== HELPERS =====
+  function cleanUrl(raw) {
+    try {
+      const u = new URL(raw);
+      if (u.hostname.includes('youtube.com') && u.searchParams.has('v')) {
+        return u.origin + u.pathname + '?v=' + u.searchParams.get('v');
+      }
+      if (u.hostname === 'youtu.be') {
+        return u.origin + u.pathname;
+      }
+      return raw;
+    } catch {
+      return raw;
+    }
+  }
+
   function getUrl() {
     const url = $urlInput.val().trim();
     if (!url) { showError('Please enter a URL first.'); $urlInput.focus(); return null; }
-    return url;
+    return cleanUrl(url);
   }
 
   function showLoading() {
@@ -390,8 +405,18 @@ $(function () {
         const cd = resp.headers.get('Content-Disposition');
         let filename = 'download';
         if (cd) {
-          const match = cd.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)/i);
-          if (match) filename = decodeURIComponent(match[1]);
+          const encMatch = cd.match(/filename\*\s*=\s*UTF-8''(.+?)(?:;|$)/i);
+          if (encMatch) {
+            filename = decodeURIComponent(encMatch[1].trim());
+          } else {
+            const quotedMatch = cd.match(/filename\s*=\s*"(.+?)"/i);
+            if (quotedMatch) {
+              filename = quotedMatch[1];
+            } else {
+              const plainMatch = cd.match(/filename\s*=\s*([^\s;]+)/i);
+              if (plainMatch) filename = plainMatch[1];
+            }
+          }
         }
 
         // Get total size for progress

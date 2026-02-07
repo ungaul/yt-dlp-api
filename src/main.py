@@ -8,7 +8,7 @@ import re
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, origins="*")
+CORS(app, origins="*", expose_headers=["Content-Disposition"])
 
 @app.route('/', methods=['GET'])
 def index():
