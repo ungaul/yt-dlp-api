@@ -29,7 +29,7 @@ docker compose up -d
 
 > Note: sometimes YouTube tries to find ways to block yt-dlp so you may encounter 403: Forbidden for no reason. In that case, simply run `docker exec -it yt-dlp-api pip install -U yt-dlp` to update yt-dlp (as soon as a patch is available)
 
-You can now also try the WebUI [here](https://ungaul.github.io/yt-dlp-api/) by adding your endpoint URL on it.
+You can now also try the WebUI [here](https://ungaul.github.io/yt-dlp-api/web) by adding your endpoint URL on it.
 
 ### Cookie file
 You should use a cookie file to avoid being flagged as bot:
