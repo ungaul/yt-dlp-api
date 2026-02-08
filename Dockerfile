@@ -1,11 +1,10 @@
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
-RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     ffmpeg \
     curl \
     ca-certificates \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
+    unzip
 
 RUN curl -fsSL https://deno.land/install.sh | sh
 
