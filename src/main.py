@@ -44,6 +44,10 @@ def info():
             'webpage_url': info.get('webpage_url'),
             'description': info.get('description'),
             'thumbnail': info.get('thumbnail'),
+            'artist': info.get('artist') or info.get('uploader'),
+            'album': info.get('album'),
+            'track': info.get('track'),
+            'album_artist': info.get('album_artist'),
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -113,10 +117,15 @@ def download():
                 'quiet': True,
                 'noprogress': True,
                 'nooverwrites': True,
+                'writethumbnail': True,
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
                     'preferredquality': '192',
+                }, {
+                    'key': 'EmbedThumbnail',
+                }, {
+                    'key': 'FFmpegMetadata',
                 }],
             }
         else:
